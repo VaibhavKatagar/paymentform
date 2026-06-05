@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Form</title>
+    <link rel="stylesheet" href="payment.css">
+</head>
+<body>
+
+<div class="container">
+    <form id="paymentForm" action="" onsubmit="return validateForm()">
+        <h1>Payment Form</h1>
+        <p class="note">Required fields are marked with *</p>
+
+        <h2>Contact Information</h2>
+
+        <div class="field">
+            <label for="name">Full Name *</label>
+            <input type="text" id="name" name="name" placeholder="Enter your name" required>
+            <div class="error" id="nameErr">Please enter your name.</div>
+        </div>
+
+        <div class="field">
+            <label for="phone">Phone Number *</label>
+            <input type="text" id="phone" name="phone" placeholder="Enter your 10-digit phone number" maxlength="10">
+            <div class="error" id="phoneErr">Enter a valid 10-digit phone number.</div>
+        </div>
+
+        <fieldset>
+            <legend>Gender *</legend>
+            <div class="radio-group">
+                <label><input type="radio" name="gender" value="male"> Male</label>
+                <label><input type="radio" name="gender" value="female"> Female</label>
+                <label><input type="radio" name="gender" value="other"> Other</label>
+            </div>
+            <div class="error" id="genderErr">Please select your gender.</div>
+        </fieldset>
+
+        <div class="field">
+            <label for="address">Address</label>
+            <textarea name="address" id="address" rows="4" placeholder="Enter your full address"></textarea>
+        </div>
+
+        <div class="field">
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" placeholder="Enter your city">
+        </div>
+
+        <div class="field">
+            <label for="state">State</label>
+            <input type="text" id="state" name="state" placeholder="Enter your state">
+        </div>
+
+        <div class="field">
+            <label for="pincode">Pincode *</label>
+            <input type="text" id="pincode" name="pincode" placeholder="Enter 6-digit pincode" maxlength="6">
+            <div class="error" id="pincodeErr">Enter a valid 6-digit pincode.</div>
+        </div>
+
+        <div class="field">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" placeholder="Enter your email" autocomplete="email">
+            <div class="error" id="emailErr">Enter a valid email address.</div>
+        </div>
+
+        <h2>Payment Information</h2>
+
+        <div class="amount-box">Amount to Pay: &#8377;1,499.00</div>
+
+        <div class="field">
+            <label for="card_type">Card Type *</label>
+            <select id="card_type" name="card_type" required autocomplete="cc-type">
+                <option value="">-- Select a Card Type --</option>
+                <option value="visa">Visa</option>
+                <option value="mastercard">Mastercard</option>
+                <option value="rupay">RuPay</option>
+            </select>
+            <div class="error" id="cardTypeErr">Please select a card type.</div>
+        </div>
+
+        <div class="field">
+            <label for="cardName">Cardholder Name *</label>
+            <input type="text" id="cardName" name="cardName" placeholder="Name as on card" autocomplete="cc-name">
+            <div class="error" id="cardNameErr">Please enter the cardholder name.</div>
+        </div>
+
+        <div class="field">
+            <label for="cardNumber">Card Number *</label>
+            <input type="text" id="cardNumber" name="cardNumber" placeholder="XXXX XXXX XXXX XXXX" maxlength="19" autocomplete="cc-number">
+            <div class="error" id="cardNumberErr">Enter a valid 16-digit card number.</div>
+        </div>
+
+        <div class="field">
+            <label for="exp_date">Expiration Date *</label>
+            <input type="date" id="exp_date" name="exp_date" autocomplete="cc-exp">
+            <div class="error" id="expErr">Expiry date must be in the future.</div>
+        </div>
+
+        <div class="field">
+            <label for="cvv">CVV *</label>
+            <input type="password" id="cvv" name="cvv" placeholder="3 or 4 digit CVV" maxlength="4" autocomplete="cc-csc">
+            <div class="error" id="cvvErr">CVV must be 3 or 4 digits.</div>
+        </div>
+
+        <div class="btn-row">
+            <input type="submit" value="Pay Now">
+            <input type="reset" value="Clear" onclick="clearErrors()">
+        </div>
+    </form>
+
+    <div class="success-msg" id="successMsg">&#10003; Payment Submitted Successfully! Thank you.</div>
+</div>
+
+<script>
+    document.getElementById('cardNumber').addEventListener('input', function () {
+        let v = this.value.replace(/\D/g, '').substring(0, 16);
+        this.value = v.replace(/(.{4})/g, '$1 ').trim();
+
+        let num = this.value.replace(/\s/g, '');
+        let sel = document.getElementById('card_type');
+        if (num.startsWith('4')) sel.value = 'visa';
+        else if (num.startsWith('5') || num.startsWith('2')) sel.value = 'mastercard';
+        else if (num.startsWith('6')) sel.value = 'rupay';
+    });
+
+    document.getElementById('phone').addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '');
+    });
+
+    document.getElementById('pincode').addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '');
+    });
+
+    function showErr(id, msg) {
+        let el = document.getElementById(id);
+        el.textContent = msg;
+        el.style.display = 'block';
+    }
+
+    function clearErrors() {
+        document.querySelectorAll('.error').forEach(e => e.style.display = 'none');
+        document.getElementById('successMsg').style.display = 'none';
+    }
+
+    function luhn(num) {
+        let s = 0, odd = false;
+        for (let i = num.length - 1; i >= 0; i--) {
+            let d = parseInt(num[i]);
+            if (odd) { d *= 2; if (d > 9) d -= 9; }
+            s += d;
+            odd = !odd;
+        }
+        return s % 10 === 0;
+    }
+
+    function validateForm() {
+        let valid = true;
+        clearErrors();
+
+        let name = document.getElementById('name').value.trim();
+        if (!name) { showErr('nameErr', 'Please enter your name.'); valid = false; }
+
+        let phone = document.getElementById('phone').value.trim();
+        if (!/^\d{10}$/.test(phone)) { showErr('phoneErr', 'Enter a valid 10-digit phone number.'); valid = false; }
+
+        let gender = document.querySelector('input[name="gender"]:checked');
+        if (!gender) { showErr('genderErr', 'Please select your gender.'); valid = false; }
+
+        let pincode = document.getElementById('pincode').value.trim();
+        if (!/^\d{6}$/.test(pincode)) { showErr('pincodeErr', 'Enter a valid 6-digit pincode.'); valid = false; }
+
+        let email = document.getElementById('email').value.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('emailErr', 'Enter a valid email address.'); valid = false; }
+
+        if (!document.getElementById('card_type').value) { showErr('cardTypeErr', 'Please select a card type.'); valid = false; }
+
+        let cardName = document.getElementById('cardName').value.trim();
+        if (!cardName) { showErr('cardNameErr', 'Please enter the cardholder name.'); valid = false; }
+
+        let cardNum = document.getElementById('cardNumber').value.replace(/\s/g, '');
+        if (!/^\d{16}$/.test(cardNum) || !luhn(cardNum)) { showErr('cardNumberErr', 'Enter a valid 16-digit card number.'); valid = false; }
+
+        let exp = document.getElementById('exp_date').value;
+        if (!exp || new Date(exp) <= new Date()) { showErr('expErr', 'Expiry date must be in the future.'); valid = false; }
+
+        let cvv = document.getElementById('cvv').value.trim();
+        if (!/^\d{3,4}$/.test(cvv)) { showErr('cvvErr', 'CVV must be 3 or 4 digits.'); valid = false; }
+
+        if (valid) {
+            document.getElementById('paymentForm').style.display = 'none';
+            document.getElementById('successMsg').style.display = 'block';
+        }
+
+        return false;
+    }
+</script>
+
+</body>
+</html>
